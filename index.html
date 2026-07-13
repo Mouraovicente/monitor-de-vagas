@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor de Vagas - Detecção de Ocupação</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .video-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: #1e293b;
+    }
+
+    video, canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .overlay-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      cursor: crosshair;
+    }
+
+    .overlay-canvas.view-mode {
+      cursor: default;
+    }
+
+    .control-panel {
+      width: 320px;
+      background: #1e293b;
+      border-left: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-value.occupied {
+      color: #ef4444;
+    }
+
+    .stat-value.free {
+      color: #22c55e;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #94a3b8;
+      text-transform: uppercase;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-primary.active {
+      background: #1e40af;
+    }
+
+    .btn-secondary {
+      background: #475569;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .zones-list {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .zone-item {
+      padding: 12px;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .zone-item:last-child {
+      border-bottom: none;
+    }
+
+    .zone-info {
+      flex: 1;
+    }
+
+    .zone-id {
+      color: #64748b;
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .zone-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .zone-status.occupied {
+      background: #7f1d1d;
+      color: #fecaca;
+    }
+
+    .zone-status.free {
+      background: #172e1e;
+      color: #bbf7d0;
+    }
+
+    .zone-remove {
+      padding: 4px 8px;
+      background: #7f1d1d;
+      color: #fecaca;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      margin-left: 8px;
+    }
+
+    .zone-remove:hover {
+      background: #991b1b;
+    }
+
+    input[type='file'] {
+      display: none;
+    }
+
+    .file-input-label {
+      padding: 12px 16px;
+      background: #475569;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .file-input-label:hover {
+      background: #334155;
+    }
+
+    .mode-indicator {
+      padding: 8px 12px;
+      background: #334155;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .mode-indicator.editing {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .empty-state p {
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="video-section">
+      <video id="video" playsinline></video>
+      <canvas id="overlay-canvas" class="overlay-canvas"></canvas>
+    </div>
+
+    <div class="control-panel">
+      <div class="section">
+        <div class="mode-indicator" id="mode-indicator">Modo: Visualização</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Status</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-value free" id="free-count">0</div>
+            <div class="stat-label">Livres</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-value occupied" id="occupied-count">0</div>
+            <div class="stat-label">Ocupadas</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Fonte de Vídeo</div>
+        <div class="button-group">
+          <button class="btn-primary" id="btn-webcam">Usar Webcam</button>
+          <label for="file-input" class="file-input-label">Carregar MP4</label>
+          <input type="file" id="file-input" accept=".mp4,video/mp4" />
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Controle</div>
+        <div class="button-group">
+          <button class="btn-primary" id="btn-toggle-edit">Modo Edição</button>
+          <button class="btn-danger" id="btn-clear-zones">Limpar Vagas</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Vagas Configuradas</div>
+        <div id="zones-container">
+          <div class="empty-state">
+            <p>Nenhuma vaga configurada.</p>
+            <p>Ative o modo edição e desenhe retângulos no vídeo.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/ui/main.ts"></script>
+</body>
+</html>
