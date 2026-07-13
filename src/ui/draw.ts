@@ -26,7 +26,7 @@ export class CanvasDrawer {
   private setupEventListeners(): void {
     this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
     this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
-    this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+    this.canvas.addEventListener('mouseup', () => this.handleMouseUp());
     this.canvas.addEventListener('mouseleave', () => this.handleMouseLeave());
   }
 
@@ -63,7 +63,7 @@ export class CanvasDrawer {
   /**
    * Handle mouse up event
    */
-  private handleMouseUp(e: MouseEvent): void {
+  private handleMouseUp(): void {
     if (!this.isEditing || !this.dragging) return;
 
     this.dragging = false;

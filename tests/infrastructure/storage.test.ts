@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { StorageAdapter, createStorageAdapter } from '@infrastructure/storage';
 import { createZone } from '@domain/zones';
 
