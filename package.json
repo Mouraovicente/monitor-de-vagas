@@ -4,7 +4,7 @@
   "description": "Real-time parking spot occupancy monitoring with ML-based vehicle detection",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": "^22 || >=24"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
